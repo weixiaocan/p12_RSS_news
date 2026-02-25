@@ -2,158 +2,131 @@
 
 自动抓取AI领域头部英文RSS博客，用AI提炼核心内容，生成每日可浏览的网页。
 
+📱 **在线访问**: [https://weixiaocan.github.io/p12_RSS_news/](https://weixiaocan.github.io/p12_RSS_news/)
+
 ## 功能特点
 
-- 自动抓取20+个AI领域权威RSS源
-- AI智能筛选高价值内容（每日精选3-5篇）
-- 生成简洁可读的静态网页
-- 支持查看最近7天历史记录
+- 🤖 自动抓取 19 个 AI 领域权威 RSS 源
+- 🧠 AI 智能筛选高价值内容（每日精选 3-5 篇）
+- 📄 生成简洁可读的静态网页
+- 📅 支持查看最近 7 天历史记录
+- ⏰ GitHub Actions 每天自动运行，无需手动操作
+- 🌐 通过 GitHub Pages 自动部署，手机随时可看
+
+## 工作原理
+
+```
+每天自动触发 (GitHub Actions, 北京时间 ~7:00)
+    │
+    ├─ 1. 抓取 RSS 源 (19个AI博客/媒体)
+    ├─ 2. AI 处理文章 (DeepSeek 智能筛选+摘要)
+    ├─ 3. 生成静态 HTML 页面
+    └─ 4. 自动部署到 GitHub Pages
+            │
+            └─ 📱 手机/电脑访问网页
+```
 
 ## 项目结构
 
 ```
 p12_RSS_news/
-├── main.py                 # 主程序入口
-├── config.py               # 配置文件
-├── requirements.txt        # Python依赖
-├── .env.example            # 环境变量示例
+├── main.py                     # 主程序入口
+├── config.py                   # 配置文件（RSS源、AI配置等）
+├── requirements.txt            # Python 依赖
+├── .env                        # 环境变量（API Key，不提交到Git）
+├── .github/
+│   └── workflows/
+│       └── daily-update.yml    # GitHub Actions 自动化配置
 ├── src/
-│   ├── rss_fetcher/        # RSS抓取模块
-│   ├── ai_processor/       # AI处理模块
-│   └── page_generator/     # 网页生成模块
-├── data/                   # 数据存储目录
-├── output/                 # 网页输出目录
-│   ├── index.html          # 首页
-│   ├── daily/              # 每日页面
-│   └── data/               # 每日数据JSON
-└── logs/                   # 日志目录
+│   ├── rss_fetcher/            # RSS 抓取模块
+│   ├── ai_processor/           # AI 处理模块
+│   └── page_generator/         # 网页生成模块
+├── data/                       # 数据存储目录
+├── output/                     # 网页输出目录
+│   ├── index.html              # 首页
+│   ├── daily/                  # 每日页面
+│   └── data/                   # 每日数据 JSON
+└── logs/                       # 日志目录
 ```
 
-## 安装
+## 自动更新（推荐）
 
-1. 克隆项目
-```bash
-cd p12_RSS_news
+项目已配置 **GitHub Actions**，每天北京时间约 7:00 自动执行以下流程：
+1. 抓取所有 RSS 源的最新文章
+2. 使用 AI 处理和筛选文章
+3. 生成静态网页
+4. 自动部署到 GitHub Pages
+
+**无需任何手动操作**，部署成功后访问：
+👉 https://weixiaocan.github.io/p12_RSS_news/
+
+### 手动触发
+
+如需立即更新，可在 GitHub 仓库的 **Actions** 页面点击 **Run workflow** 手动触发。
+
+### 自动更新时间配置
+
+在 `.github/workflows/daily-update.yml` 中修改 cron 表达式：
+
+```yaml
+schedule:
+  - cron: '0 23 * * *'  # UTC 23:00 = 北京时间次日 7:00
 ```
 
-2. 创建虚拟环境
+## 本地运行
+
+如需在本地运行：
+
+1. **创建虚拟环境并安装依赖**
 ```bash
 python -m venv venv
 # Windows
 venv\Scripts\activate
 # Linux/Mac
 source venv/bin/activate
-```
 
-3. 安装依赖
-```bash
 pip install -r requirements.txt
 ```
 
-4. 配置环境变量
-```bash
-cp .env.example .env
-# 编辑 .env 文件，设置 OPENAI_API_KEY
+2. **配置环境变量**
+
+创建 `.env` 文件，填入以下内容：
+```env
+OPENAI_API_KEY=your_api_key
+OPENAI_BASE_URL=https://api.deepseek.com
+AI_MODEL=deepseek-reasoner
 ```
 
-## 使用方法
-
-### 方式1：手动执行一次
+3. **执行一次**
 ```bash
-# 双击 run_once.bat
-# 或命令行执行:
 python main.py once
 ```
 
-### 方式2：持续运行模式（开发测试）
-```bash
-# 双击 run_service.bat
-# 或命令行执行:
-python main.py run
-```
-程序持续运行，每天7:00自动执行。按 Ctrl+C 停止。
+4. **查看结果**
 
-### 方式3：Windows任务计划程序（推荐生产环境）
+在浏览器中打开 `output/index.html`。
 
-#### 自动配置（推荐）
-以管理员身份运行 PowerShell，执行：
-```powershell
-.\setup_task.ps1
-```
+## RSS 源列表
 
-#### 手动配置
-1. 按 `Win+R` 输入 `taskschd.msc` 打开任务计划程序
-2. 点击右侧"创建基本任务"
-3. 名称: `AI每日前沿-RSS抓取`
-4. 触发器: 每天 07:00
-5. 操作: 启动程序
-   - 程序: `cmd.exe`
-   - 参数: `/c "D:\huangxh\AI_Projects_100\p12_RSS_news\run_once.bat"`
-6. 完成后右键任务选择"运行"测试
+**AI 实验室**
+- OpenAI News、Google DeepMind、Mistral AI
 
-#### 任务计划程序常用命令
-```powershell
-# 查看任务
-Get-ScheduledTask -TaskName "AI每日前沿-RSS抓取"
+**AI 工具与开发者**
+- Hugging Face、LangChain
 
-# 立即运行
-Start-ScheduledTask -TaskName "AI每日前沿-RSS抓取"
+**AI 实践派博客**
+- Simon Willison、Eugene Yan、Lilian Weng
+- Chip Huyen、Jay Alammar、Sebastian Raschka
 
-# 禁用任务
-Disable-ScheduledTask -TaskName "AI每日前沿-RSS抓取"
+**AI 行业媒体**
+- MIT Tech Review AI、The Verge AI、Ars Technica AI
+- The Gradient、Ben's Bites
 
-# 启用任务
-Enable-ScheduledTask -TaskName "AI每日前沿-RSS抓取"
+**AI Newsletter**
+- The Keyword (Google AI)、AINews by smol.ai
+- Peter Yang、Every (Chain of Thought)
 
-# 删除任务
-Unregister-ScheduledTask -TaskName "AI每日前沿-RSS抓取" -Confirm:$false
-```
-
-## 查看网页
-
-执行完成后，在浏览器中打开 `output/index.html` 文件，或使用简单的HTTP服务器：
-
-```bash
-cd output
-python -m http.server 8000
-```
-
-然后访问 http://localhost:8000
-
-## RSS源列表
-
-项目默认订阅以下RSS源：
-
-**AI实验室**
-- OpenAI News
-- Anthropic Blog
-- Google DeepMind
-- Meta AI
-- Mistral AI
-
-**AI工具与开发者**
-- Hugging Face
-- LangChain
-- LlamaIndex
-- Ollama
-
-**AI实践派博客**
-- Simon Willison
-- Eugene Yan
-- Lilian Weng
-- Chip Huyen
-- Jay Alammar
-- Sebastian Raschka
-
-**AI行业媒体**
-- The Batch (吴恩达)
-- MIT Tech Review AI
-- The Verge AI
-- Ars Technica AI
-- The Gradient
-- Ben's Bites
-
-## AI筛选标准
+## AI 筛选标准
 
 文章进入"今日精选"需满足以下至少两个条件：
 1. **有新东西**：新模型、新工具、新方法、新研究成果
