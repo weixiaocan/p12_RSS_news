@@ -1,0 +1,80 @@
+name: AI每日前沿 - 自动更新
+
+on:
+  # 定时触发：每天北京时间 7:00（UTC 23:00 前一天）
+  schedule:
+    - cron: '0 23 * * *'
+
+  # 手动触发（方便测试）
+  workflow_dispatch:
+
+# 设置权限，允许部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只允许一个部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # 1. 拉取代码
+      - name: 📥 拉取代码
+        uses: actions/checkout@v4
+
+      # 2. 设置 Python 环境
+      - name: 🐍 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # 3. 安装依赖
+      - name: 📦 安装依赖
+        run: pip install -r requirements.txt
+
+      # 4. 运行主程序（抓取RSS + AI处理 + 生成HTML）
+      - name: 🚀 运行主程序
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          MAX_ARTICLES_PER_DAY: '50'
+          RUN_TIME: '07:00'
+          TIMEZONE: 'Asia/Shanghai'
+          LOG_LEVEL: 'INFO'
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+        run: python main.py once
+
+      # 5. 查看生成结果
+      - name: 📋 检查输出
+        run: |
+          echo "=== 输出目录内容 ==="
+          ls -la output/
+          echo "=== index.html 大小 ==="
+          wc -c output/index.html || echo "未找到 index.html"
+
+      # 6. 配置 GitHub Pages
+      - name: 📄 配置 Pages
+        uses: actions/configure-pages@v4
+
+      # 7. 上传到 Pages
+      - name: 📤 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './output'
+
+      # 8. 部署到 GitHub Pages
+      - name: 🌐 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
