@@ -687,13 +687,14 @@ class PageGenerator:
         all_articles = data.get('articles', [])
 
         # 获取可用的日期列表（最近7天）
+        # 注意：使用 check_date_str 避免覆盖函数参数 date_str
         available_dates = []
         for i in range(7):
             d = datetime.now(SHANGHAI_TZ) - timedelta(days=i)
-            date_str = d.strftime("%Y-%m-%d")
-            data_file = self.output_dir / "data" / f"{date_str}.json"
+            check_date_str = d.strftime("%Y-%m-%d")
+            data_file = self.output_dir / "data" / f"{check_date_str}.json"
             if data_file.exists():
-                available_dates.append(date_str)
+                available_dates.append(check_date_str)
         available_dates.reverse()
 
         template = Template(template_str)
