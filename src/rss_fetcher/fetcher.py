@@ -9,8 +9,12 @@ from typing import List, Dict, Optional
 import logging
 from pathlib import Path
 import json
+import pytz
 
 logger = logging.getLogger(__name__)
+
+# 北京时区
+SHANGHAI_TZ = pytz.timezone('Asia/Shanghai')
 
 
 class RSSFetcher:
@@ -49,7 +53,7 @@ class RSSFetcher:
 
     def _cleanup_old_seen(self, days: int = 7):
         """清理超过指定天数的已处理文章记录"""
-        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(SHANGHAI_TZ) - timedelta(days=days)).isoformat()
         self.seen_articles = {
             url: date for url, date in self.seen_articles.items()
             if date > cutoff
@@ -90,10 +94,12 @@ class RSSFetcher:
                 if published:
                     pub_date = datetime(*published[:6])
                 else:
-                    pub_date = datetime.now()
+                    pub_date = datetime.now(SHANGHAI_TZ)
 
                 # 只处理24小时内的新文章
-                if pub_date < datetime.now() - timedelta(hours=24):
+                if pub_date.tzinfo is None:
+                    pub_date = SHANGHAI_TZ.localize(pub_date)
+                if pub_date < datetime.now(SHANGHAI_TZ) - timedelta(hours=24):
                     continue
 
                 # 提取标题
@@ -117,7 +123,7 @@ class RSSFetcher:
                 })
 
                 # 标记为已处理
-                self.seen_articles[article_url] = datetime.now().isoformat()
+                self.seen_articles[article_url] = datetime.now(SHANGHAI_TZ).isoformat()
 
             logger.info(f"{name} 抓取到 {len(articles)} 篇新文章")
 

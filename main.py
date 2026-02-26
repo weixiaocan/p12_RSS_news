@@ -11,6 +11,9 @@ import schedule
 import pytz
 from colorlog import ColoredFormatter
 
+# 北京时区
+SHANGHAI_TZ = pytz.timezone('Asia/Shanghai')
+
 from config import (
     RSS_SOURCES,
     AI_CONFIG,
@@ -72,7 +75,7 @@ logger = setup_logging()
 
 def run_job():
     """执行一次完整的抓取-处理-生成流程"""
-    start_time = datetime.now()
+    start_time = datetime.now(SHANGHAI_TZ)
     logger.info("=" * 60)
     logger.info(f"开始执行任务: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 60)
@@ -125,7 +128,7 @@ def run_job():
         fetcher.cleanup(days=DATA_RETENTION_DAYS)
 
         # 完成
-        end_time = datetime.now()
+        end_time = datetime.now(SHANGHAI_TZ)
         duration = (end_time - start_time).total_seconds()
         logger.info("\n" + "=" * 60)
         logger.info(f"任务完成! 耗时: {duration:.1f}秒")

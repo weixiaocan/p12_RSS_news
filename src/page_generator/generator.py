@@ -10,8 +10,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
 from jinja2 import Template
+import pytz
 
 logger = logging.getLogger(__name__)
+
+# 北京时区
+SHANGHAI_TZ = pytz.timezone('Asia/Shanghai')
 
 
 class PageGenerator:
@@ -31,9 +35,9 @@ class PageGenerator:
         self.site_config = site_config
 
     def _get_date_str(self, date: datetime = None) -> str:
-        """获取日期字符串"""
+        """获取日期字符串（使用北京时间）"""
         if date is None:
-            date = datetime.now()
+            date = datetime.now(SHANGHAI_TZ)
         return date.strftime("%Y-%m-%d")
 
     def _save_data(self, date_str: str, data: Dict):
@@ -56,7 +60,7 @@ class PageGenerator:
 
     def _cleanup_old_data(self, days: int = 7):
         """清理旧数据"""
-        cutoff = datetime.now() - timedelta(days=days)
+        cutoff = datetime.now(SHANGHAI_TZ) - timedelta(days=days)
         data_dir = self.output_dir / "data"
 
         if not data_dir.exists():
@@ -685,7 +689,7 @@ class PageGenerator:
         # 获取可用的日期列表（最近7天）
         available_dates = []
         for i in range(7):
-            d = datetime.now() - timedelta(days=i)
+            d = datetime.now(SHANGHAI_TZ) - timedelta(days=i)
             date_str = d.strftime("%Y-%m-%d")
             data_file = self.output_dir / "data" / f"{date_str}.json"
             if data_file.exists():
@@ -710,7 +714,7 @@ class PageGenerator:
             date: 日期，默认为今天
         """
         if date is None:
-            date = datetime.now()
+            date = datetime.now(SHANGHAI_TZ)
 
         date_str = self._get_date_str(date)
 
